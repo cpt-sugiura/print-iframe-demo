@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>iframeを印刷</title>
+</head>
+<body>
+<iframe id="print-tgt" src="/print_tgt.html" frameborder="1"></iframe>
+<div>ここはiframeの外です</div>
+<button id="print-btn">印刷</button>
+<script>
+document.getElementById('print-btn').addEventListener('click',()=>{
+  document.getElementById('print-tgt').contentWindow.print()
+})
+</script>
+</body>
+</html>

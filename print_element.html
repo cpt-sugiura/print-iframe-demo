@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>要素を印刷</title>
+  <style>
+      #print-tgt {
+          background: #cfc;
+          border: solid #444;
+      }
+  </style>
+</head>
+<body>
+<div id="print-tgt">
+  <span>この枠の要素だけが印刷対象になります</span>
+</div>
+<div>ここは印刷されません</div>
+<button id="print-btn">印刷</button>
+<script>
+document.getElementById('print-btn').addEventListener('click', () => {
+  // 印刷用の iframe を生成
+  const iframe = document.createElement('iframe');
+  // 空の HTML ドキュメントをベースとして、印刷したいものを付け足していく形で iframe を構築
+  iframe.srcdoc = "<!DOCTYPE html>";
+  // 大本の window 内に入っていないと印刷できないので、appendChild で追加
+  document.body.appendChild(iframe);
+  // 印刷中とはいえ、画面内に余分なものが見えるのは好ましくないため display:none で非表示化
+  iframe.style.display = 'none';
+  // 大本の window 内にロードし終わったら印刷用の構築を本格化
+  iframe.onload = () => {
+    // 印刷したい要素の複製を iframe 内の body に追加
+    iframe.contentDocument.body.appendChild(document.getElementById('print-tgt').cloneNode(true));
+    // 大本の window の CSS を反映
+    document.querySelectorAll("style").forEach(el => iframe.contentDocument.head.appendChild(el.cloneNode(true)))
+    document.querySelectorAll("link[rel='stylesheet']").forEach(el => iframe.contentDocument.head.appendChild(el.cloneNode(true)))
+    // 印刷を実行
+    iframe.contentWindow.print();
+    // 印刷が終わったら iframe を削除して元通りの DOM にする
+    iframe.contentWindow.addEventListener('afterprint', () => iframe.remove());
+  }
+})
+</script>
+</body>
+</html>
