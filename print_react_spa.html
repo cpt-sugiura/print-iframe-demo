@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>要素を印刷</title>
+  <style>
+      #print-tgt {
+          display: flex;
+          flex-direction: column;
+      }
+  </style>
+  <script type="module" src="/assets/index.46d7ad2e.js"></script>
+</head>
+<body>
+<div id="print-tgt">
+  <label>Reactに渡す文字列<input name="msg"></label>
+  <label>ユーザー名<input name="user_name"></label>
+  <label>メールアドレス<input name="email"></label>
+</div>
+<button id="print-btn">印刷</button>
+<script>
+document.getElementById('print-btn').addEventListener('click', () => {
+  // 印刷用の iframe を生成
+  const iframe = document.createElement('iframe');
+  // 印刷したい React コンポーネント全体を動かさせる形で iframe を構築
+  iframe.srcdoc = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="msg" content="${document.querySelector('input[name="msg"]').value}">
+  <meta name="json" content="${JSON.stringify({
+    userName: document.querySelector('input[name="user_name"]').value,
+    email: document.querySelector('input[name="email"]').value,
+  }).replace(/[&'`"<>]/g, function(match) {
+    return {
+      '&': '&amp;',
+      "'": '&#x27;',
+      '`': '&#x60;',
+      '"': '&quot;',
+      '<': '&lt;',
+      '>': '&gt;',
+    }[match]
+  })}">
+  <script type="module" src="/assets/index.46d7ad2e.js"></${'script'}>
+</head>
+<body>
+  <div id="root"></div>
+</body>
+</html>
+  `;
+  // 大本の window 内に入っていないと印刷できないので、appendChild で追加
+  document.body.appendChild(iframe);
+  // 印刷中とはいえ、画面内に余分なものが見えるのは好ましくないため display:none で非表示化
+  iframe.style.display = 'none';
+  // 大本の window 内にロードし終わったら印刷
+  iframe.onload = () => {
+    const intervalId = setInterval(()=>{
+      if(iframe.contentDocument.body.querySelector('.app')){
+        // Reactで作ったページが構築完了するまで待つ
+        return;
+      }
+      // 印刷を実行
+      iframe.contentWindow.print();
+      // 印刷が終わったら iframe を削除して元通りの DOM にする
+      // iframe.contentWindow.addEventListener('afterprint', () => iframe.remove());
+      // 印刷が終わったら定期実行を削除
+      clearInterval(intervalId);
+    },10)
+  }
+})
+</script>
+</body>
+</html>
