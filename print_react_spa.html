@@ -9,7 +9,6 @@
           flex-direction: column;
       }
   </style>
-  <script type="module" src="/assets/index.46d7ad2e.js"></script>
 </head>
 <body>
 <div id="print-tgt">
@@ -23,6 +22,11 @@ document.getElementById('print-btn').addEventListener('click', () => {
   // 印刷用の iframe を生成
   const iframe = document.createElement('iframe');
   // 印刷したい React コンポーネント全体を動かさせる形で iframe を構築
+  // ここでは meta 要素を経由して React に値を渡しています。
+  //   単に文字列として渡してもいいですし、JSONとしてもいいです。
+  //   JSONの場合は HTML と混ざらないようにエスケープする必要があります。
+  // script タグのテンプレート化はこのソースコードが HTML 上に直書きしているためです。
+  // 閉じタグとして認識されないように </ と script の間に ${' をはさんでいます
   iframe.srcdoc = `
 <!DOCTYPE html>
 <html>
@@ -31,8 +35,7 @@ document.getElementById('print-btn').addEventListener('click', () => {
   <meta name="json" content="${JSON.stringify({
     userName: document.querySelector('input[name="user_name"]').value,
     email: document.querySelector('input[name="email"]').value,
-  }).replace(/[&'`"<>]/g, function(match) {
-    return {
+  }).replace(/[&'`"<>]/g, (match) => ({
       '&': '&amp;',
       "'": '&#x27;',
       '`': '&#x60;',
@@ -40,7 +43,7 @@ document.getElementById('print-btn').addEventListener('click', () => {
       '<': '&lt;',
       '>': '&gt;',
     }[match]
-  })}">
+  ))}">
   <script type="module" src="assets/index.46d7ad2e.js"></${'script'}>
 </head>
 <body>
@@ -54,8 +57,8 @@ document.getElementById('print-btn').addEventListener('click', () => {
   iframe.style.display = 'none';
   // 大本の window 内にロードし終わったら印刷
   iframe.onload = () => {
-    const intervalId = setInterval(()=>{
-      if(iframe.contentDocument.body.querySelector('.app')){
+    const intervalId = setInterval(() => {
+      if (iframe.contentDocument.body.querySelector('.app')) {
         // Reactで作ったページが構築完了するまで待つ
         return;
       }
@@ -65,7 +68,7 @@ document.getElementById('print-btn').addEventListener('click', () => {
       // iframe.contentWindow.addEventListener('afterprint', () => iframe.remove());
       // 印刷が終わったら定期実行を削除
       clearInterval(intervalId);
-    },10)
+    }, 10)
   }
 })
 </script>
